@@ -4,12 +4,23 @@ import { createScopeButton, scopeButtonClassName } from "../UI/ScopeButton"
 import { createMisskeyPostButton, misskeyButtonClassName, syncDisableState } from "../UI/MisskeyPostButton"
 import { createMisskeyImageOptionButton } from "../UI/ImageFlagButton"
 import { createLocalOnlyButton, localOnlyButtonClassName } from "../UI/LocalOnlyButton";
+import {createRenoteButton, renoteButtonClassName} from "../UI/RenoteButton";
 
 const gifButtonSelector = 'button[data-testid="gifSearchButton"]'
 const buttonSelector = 'button[data-testid="tweetButton"], button[data-testid="tweetButtonInline"]'
 const attachmentsImageSelector = 'div[data-testid="attachments"] div[role="group"]'
 const editButtonSelector = 'button[role="button"]'
+const analyticsButtonSelector = 'span[data-testid="app-text-transition-container"]'
+const tweetSelector = 'article[data-testid="tweet"]'
 
+
+//リノートボタンを作成する
+const addRenoteButton = (iconBox: HTMLElement, url: string) => {
+  // すでにボタンがある場合は何もしない
+  if (iconBox.querySelector(`.${renoteButtonClassName}`)) return;
+  const renoteButton = createRenoteButton(url);
+  iconBox.appendChild(renoteButton);
+}
 
 // スコープボタンを作成する
 const addScopeButton = (iconBox: HTMLElement) => {
@@ -74,6 +85,20 @@ const foundAttachmentsImageHandler = (attachmentsImage: HTMLElement) => {
   addMisskeyImageOptionButton(editButton, attachmentsImage);
 }
 
+const foundTweetHandler = (tweet: HTMLElement) => {
+  if (tweet.getElementsByClassName(renoteButtonClassName).length > 0) return
+
+  const buttons = tweet.querySelectorAll(analyticsButtonSelector);
+  if (!buttons || !buttons[3]) return;
+
+  let analyticsButton = buttons[3].parentElement?.parentElement?.parentElement as HTMLElement;
+  if (!analyticsButton) return;
+
+  let iconsBlock = analyticsButton.parentElement?.parentElement as HTMLElement;
+  let analyticsUrl = analyticsButton.getAttribute('href');
+  if (iconsBlock && analyticsUrl) addRenoteButton(iconsBlock, `https://x.com${analyticsUrl.replace("/analytics", "")}`);
+}
+
 const observer = new MutationObserver(mutations => {
   mutations.forEach(mutation => {
       if (mutation.type !== 'childList') return;
@@ -87,6 +112,13 @@ const observer = new MutationObserver(mutations => {
         if (attachmentsImages) { 
           attachmentsImages.forEach((attachmentsImage: any) => {
             foundAttachmentsImageHandler(attachmentsImage); 
+          })
+        }
+
+        const tweets = document.querySelectorAll(tweetSelector);
+        if (tweets) {
+          tweets.forEach(tweet => {
+            foundTweetHandler(tweet as HTMLElement);
           })
         }
       });
