@@ -10,7 +10,7 @@ const gifButtonSelector = 'button[data-testid="gifSearchButton"]'
 const buttonSelector = 'button[data-testid="tweetButton"], button[data-testid="tweetButtonInline"]'
 const attachmentsImageSelector = 'div[data-testid="attachments"] div[role="group"]'
 const editButtonSelector = 'button[role="button"]'
-const analyticsButtonSelector = 'span[data-testid="app-text-transition-container"]'
+const bookmarkButtonSelector = 'button[data-testid="bookmark"],button[data-testid="removeBookmark"]'
 const tweetSelector = 'article[data-testid="tweet"]'
 
 
@@ -85,18 +85,26 @@ const foundAttachmentsImageHandler = (attachmentsImage: HTMLElement) => {
   addMisskeyImageOptionButton(editButton, attachmentsImage);
 }
 
+const getTweetUrl = (tweet: HTMLElement) => {
+  const link: HTMLLinkElement | null = tweet.querySelector('a[href*="/status/"]');
+  if (link) {
+    console.log(link.href)
+    const match = link.href.match(/([^\/]+)\/status\/(\d+)/);
+    if (match) return `https://twitter.com/${match[1]}/status/${match[2]}`;
+  }
+
+  return null;
+}
+
 const foundTweetHandler = (tweet: HTMLElement) => {
   if (tweet.getElementsByClassName(renoteButtonClassName).length > 0) return
 
-  const buttons = tweet.querySelectorAll(analyticsButtonSelector);
-  if (!buttons || !buttons[3]) return;
+  const bookmarkButton = tweet.querySelector(bookmarkButtonSelector);
+  if (!bookmarkButton) return;
 
-  let analyticsButton = buttons[3].parentElement?.parentElement?.parentElement as HTMLElement;
-  if (!analyticsButton) return;
-
-  let iconsBlock = analyticsButton.parentElement?.parentElement as HTMLElement;
-  let analyticsUrl = analyticsButton.getAttribute('href');
-  if (iconsBlock && analyticsUrl) addRenoteButton(iconsBlock, `https://x.com${analyticsUrl.replace("/analytics", "")}`);
+  const iconsBlock = bookmarkButton.parentElement?.parentElement as HTMLElement;
+  const tweetUrl = getTweetUrl(tweet);
+  if (iconsBlock) addRenoteButton(iconsBlock, tweetUrl + "");
 }
 
 const observer = new MutationObserver(mutations => {

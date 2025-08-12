@@ -50,5 +50,10 @@ export const createRenoteButton = (url: string) => {
         }
     }
 
-    return renoteButton;
+    const baseDiv = document.createElement('div');
+    baseDiv.style.height = '100%';
+    baseDiv.style.alignContent = 'center';
+    baseDiv.appendChild(renoteButton);
+
+    return baseDiv;
 }
