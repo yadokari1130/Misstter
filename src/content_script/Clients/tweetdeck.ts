@@ -1,3 +1,4 @@
+import browser from 'webextension-polyfill';
 import { REPLY_BUTTON_LABELS } from '../../common/constants';
 import { createScopeButton, scopeButtonClassName } from "../UI/ScopeButton"
 import { createMisskeyPostButton, misskeyButtonClassName, syncDisableState } from "../UI/MisskeyPostButton"
@@ -91,6 +92,29 @@ const foundAttachmentsImageHandler = (attachmentsImage: HTMLElement) => {
 const gifButtonSelector = 'div[data-testid="gifSearchButton"]'
 const buttonSelector = '//*[@id="react-root"]/div/div/div[3]/div/div[2]/div/div/div[1]/div/div/div/div[3]/div'
 const attachmentsImageSelector = 'div[data-testid="attachments"] div[role="group"]'
+const tweetSelector = 'article[data-testid="tweet"]'
+
+const getTweetUrl = (tweet: HTMLElement) => {
+  const link: HTMLLinkElement | null = tweet.querySelector('a[href*="/status/"]');
+  if (link) {
+    const match = link.href.match(/([^\/]+)\/status\/(\d+)/);
+    if (match) return `https://x.com/${match[1]}/status/${match[2]}`;
+  }
+  return null;
+}
+
+const foundTweetHandler = (tweet: HTMLElement) => {
+  const retweetButtonSelector = 'button[data-testid="retweet"]';
+  const retweetButton = tweet.querySelector(retweetButtonSelector);
+  
+  if (retweetButton && !retweetButton.hasAttribute('data-misskey-rt-hooked')) {
+    retweetButton.setAttribute('data-misskey-rt-hooked', 'true');
+    retweetButton.addEventListener('click', () => {
+      const tweetUrl = getTweetUrl(tweet);
+      if (tweetUrl) browser.storage.local.set({ misskey_last_quote_url: tweetUrl });
+    });
+  }
+}
 
 const observer = new MutationObserver(mutations => {
   mutations.forEach(mutation => {
@@ -106,6 +130,13 @@ const observer = new MutationObserver(mutations => {
         if (attachmentsImages) { 
           attachmentsImages.forEach((attachmentsImage: any) => {
             foundAttachmentsImageHandler(attachmentsImage); 
+          })
+        }
+
+        const tweets = document.querySelectorAll(tweetSelector);
+        if (tweets) {
+          tweets.forEach(tweet => {
+            foundTweetHandler(tweet as HTMLElement);
           })
         }
       });

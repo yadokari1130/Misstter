@@ -1,3 +1,4 @@
+import browser from 'webextension-polyfill';
 import { tweetToMisskey } from '../System/TwitterCrawler';
 import { REPLY_BUTTON_LABELS } from '../../common/constants';
 import { createScopeButton, scopeButtonClassName } from "../UI/ScopeButton"
@@ -12,6 +13,7 @@ const buttonSelector = 'button[data-testid="tweetButton"], button[data-testid="t
 const attachmentsImageSelector = 'div[data-testid="attachments"] div[role="group"]'
 const editButtonSelector = 'button[role="button"]'
 const bookmarkButtonSelector = 'button[data-testid="bookmark"],button[data-testid="removeBookmark"]'
+const retweetButtonSelector = 'button[data-testid="retweet"]'
 const tweetSelector = 'article[data-testid="tweet"]'
 
 
@@ -110,7 +112,7 @@ const getTweetUrl = (tweet: HTMLElement) => {
   if (link) {
     console.log(link.href)
     const match = link.href.match(/([^\/]+)\/status\/(\d+)/);
-    if (match) return `https://twitter.com/${match[1]}/status/${match[2]}`;
+    if (match) return `https://x.com/${match[1]}/status/${match[2]}`;
   }
 
   return null;
@@ -125,6 +127,14 @@ const foundTweetHandler = (tweet: HTMLElement) => {
   const iconsBlock = bookmarkButton.parentElement?.parentElement as HTMLElement;
   const tweetUrl = getTweetUrl(tweet);
   if (iconsBlock) addRenoteButton(iconsBlock, tweetUrl + "");
+
+  const retweetButton = tweet.querySelector(retweetButtonSelector);
+  if (retweetButton && !retweetButton.hasAttribute('data-misskey-rt-hooked')) {
+    retweetButton.setAttribute('data-misskey-rt-hooked', 'true');
+    retweetButton.addEventListener('click', () => {
+      if (tweetUrl) browser.storage.local.set({ misskey_last_quote_url: tweetUrl });
+    });
+  }
 }
 
 const observer = new MutationObserver(mutations => {
