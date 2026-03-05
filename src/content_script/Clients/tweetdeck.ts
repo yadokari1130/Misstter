@@ -5,6 +5,7 @@ import { createMisskeyImageOptionButton } from "../UI/ImageFlagButton"
 // DeckではTwitterCrawlerがそのまま使用可能
 import { tweetToMisskey } from '../System/TwitterCrawler';
 import { createLocalOnlyButton, localOnlyButtonClassName } from "../UI/LocalOnlyButton";
+import { createEmojiPickerButton, emojiPickerButtonClassName } from "../UI/EmojiPickerButton";
 
 // ミスキーへの投稿ボタンを追加する
 const addMisskeyPostButton = (tweetButton: HTMLElement, tweetBox: HTMLElement) => {
@@ -34,6 +35,13 @@ const addLocalOnlyButton = (iconBox: HTMLElement) => {
   iconBox.appendChild(localOnlyButton);
 }
 
+// 絵文字ピッカーボタンを作成する
+const addEmojiPickerButton = (iconBox: HTMLElement) => {
+  if (iconBox.querySelector(`.${emojiPickerButtonClassName}`)) return;
+  const emojiPickerButton = createEmojiPickerButton();
+  iconBox.appendChild(emojiPickerButton);
+}
+
 // ミスキーへのセンシティブ設定ボタンを追加する
 const addMisskeyImageOptionButton = (editButton: HTMLElement, attachmentsImage: HTMLElement) => {
   const misskeybutton = createMisskeyImageOptionButton();
@@ -55,8 +63,18 @@ const foundTweetButtonHandler = (tweetButton: HTMLElement) => {
   // // add scope button and local only button
   const iconsBlock = document.querySelector(gifButtonSelector)?.parentElement as HTMLElement
   if (iconsBlock) {
+    if (!iconsBlock.querySelector('.misskey-extension-break')) {
+      iconsBlock.style.flexWrap = 'wrap';
+      const breakEl = document.createElement('div');
+      breakEl.className = 'misskey-extension-break';
+      breakEl.style.flexBasis = '100%';
+      breakEl.style.height = '4px';
+      iconsBlock.appendChild(breakEl);
+    }
+    
     addScopeButton(iconsBlock);
     addLocalOnlyButton(iconsBlock);
+    addEmojiPickerButton(iconsBlock);
   }
 }
 

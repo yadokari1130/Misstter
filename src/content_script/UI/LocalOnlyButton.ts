@@ -36,6 +36,8 @@ export const createLocalOnlyButton = () => {
 
     localOnlyButton.style.backgroundColor = 'transparent';
     localOnlyButton.style.display = 'flex'
+    localOnlyButton.style.margin = '0 1px';
+    localOnlyButton.style.paddingTop = '0';
     localOnlyButton.style.alignItems = 'center'
     localOnlyButton.style.justifyContent = 'center'
     localOnlyButton.style.borderRadius = '9999px';

@@ -37,6 +37,8 @@ export const createScopeButton = () => {
 
   scopeButton.style.backgroundColor = 'transparent';
   scopeButton.style.display = 'flex'
+  scopeButton.style.margin = '0 1px';
+  scopeButton.style.paddingTop = '0';
   scopeButton.style.alignItems = 'center'
   scopeButton.style.justifyContent = 'center'
   scopeButton.style.borderRadius = '9999px';

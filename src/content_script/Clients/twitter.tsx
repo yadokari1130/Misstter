@@ -5,6 +5,7 @@ import { createMisskeyPostButton, misskeyButtonClassName, syncDisableState } fro
 import { createMisskeyImageOptionButton } from "../UI/ImageFlagButton"
 import { createLocalOnlyButton, localOnlyButtonClassName } from "../UI/LocalOnlyButton";
 import {createRenoteButton, renoteButtonClassName} from "../UI/RenoteButton";
+import { createEmojiPickerButton, emojiPickerButtonClassName } from "../UI/EmojiPickerButton";
 
 const gifButtonSelector = 'button[data-testid="gifSearchButton"]'
 const buttonSelector = 'button[data-testid="tweetButton"], button[data-testid="tweetButtonInline"]'
@@ -35,6 +36,13 @@ const addLocalOnlyButton = (iconBox: HTMLElement) => {
   if (iconBox.querySelector(`.${localOnlyButtonClassName}`)) return;
   const localOnlyButton = createLocalOnlyButton();
   iconBox.appendChild(localOnlyButton);
+}
+
+// 絵文字ピッカーボタンを作成する
+const addEmojiPickerButton = (iconBox: HTMLElement) => {
+  if (iconBox.querySelector(`.${emojiPickerButtonClassName}`)) return;
+  const emojiPickerButton = createEmojiPickerButton();
+  iconBox.appendChild(emojiPickerButton);
 }
 
 // ミスキーへの投稿ボタンを追加する
@@ -70,8 +78,20 @@ const foundTweetButtonHandler = (tweetButton: HTMLElement) => {
   // add scope button and local only button
   const iconsBlock = document.querySelector(gifButtonSelector)?.parentElement?.parentElement as HTMLElement;
   if (iconsBlock) {
+    if (!iconsBlock.querySelector('.misskey-extension-break')) {
+      iconsBlock.style.flexWrap = 'wrap';
+      const breakEl = document.createElement('div');
+      breakEl.className = 'misskey-extension-break';
+      breakEl.style.flexBasis = '100%';
+      breakEl.style.height = '0px';
+      breakEl.style.margin = '0';
+      breakEl.style.padding = '0';
+      iconsBlock.appendChild(breakEl);
+    }
+    
     addScopeButton(iconsBlock);
     addLocalOnlyButton(iconsBlock);
+    addEmojiPickerButton(iconsBlock);
   }
 }
 
