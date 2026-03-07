@@ -18,6 +18,51 @@ const getQuoteRTUrl = async (): Promise<string | null> => {
   if (/@\w+/.test(text)) return url;
   return null;
 }
+
+let latestTweetId: string | null = null;
+let latestNoteId: string | null = null;
+let syncTimeout: NodeJS.Timeout | null = null;
+let lastOptions: any = null;
+
+const trySyncIds = () => {
+    browser.storage.sync.get(['misskey_self_reply']).then((result) => {
+        if (!result?.misskey_self_reply) return;
+        
+        if (latestTweetId && latestNoteId) {
+            if (syncTimeout) clearTimeout(syncTimeout);
+            
+            syncTimeout = setTimeout(() => {
+                const tweetId = latestTweetId;
+                const noteId = latestNoteId;
+                latestTweetId = null;
+                latestNoteId = null;
+                
+                if (tweetId && noteId && lastOptions) {
+                    browser.runtime.sendMessage({
+                        type: 'saveLinkPair',
+                        twitterId: tweetId,
+                        misskeyId: noteId,
+                        options: lastOptions
+                    }).catch(e => console.error('[Misstter] Failed to send saveLinkPair message', e));
+                }
+            }, 2000);
+        }
+    });
+};
+
+window.addEventListener('message', (event) => {
+    if (event.data?.type === 'MISSTTER_TWEET_CREATED' && event.data?.tweetId) {
+        latestTweetId = event.data.tweetId;
+        trySyncIds();
+    }
+});
+
+export const setLatestNoteId = (noteId: string, options: any) => {
+    latestNoteId = noteId;
+    lastOptions = options;
+    trySyncIds();
+};
+
 const injectFetchPatch = () => {
     if ((window as any).__misstter_fetch_patch_injected) return;
     (window as any).__misstter_fetch_patch_injected = true;
@@ -109,7 +154,10 @@ export const tweetToMisskey = async () => {
     ])
   
     const options = { cw, token, server, sensitive, scope: scope as Scope, localOnly }
-    await postToMisskey(text, images, videos, options);
+    const noteId = await postToMisskey(text, images, videos, options);
+    if (noteId) {
+      setLatestNoteId(noteId, options);
+    }
   } catch (e) {
     console.error(e)
     showNotification('Misskeyへの投稿に失敗しました', 'error')

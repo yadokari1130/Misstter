@@ -1,4 +1,5 @@
 import { AttachmentData, PostOptions } from "../common/CommonType"
+import { BACKEND_API_URL } from "../common/constants"
 
 const uploadAttachment = async (attachment: AttachmentData, options: PostOptions) => {
   const blob = await (await fetch(attachment.data)).blob()
@@ -50,5 +51,28 @@ export const postToMisskey = async (text: string, attachments: AttachmentData[],
     const errorRes = await res.json()
     const message = errorRes["error"]["message"]
     throw new Error(message)
+  }
+  const responseJson = await res.json();
+  return responseJson.createdNote.id as string;
+}
+
+export const saveLinkPair = async (twitterId: string, misskeyId: string, options: PostOptions) => {
+  const url = `${BACKEND_API_URL}/api/links`
+  const body = {
+    twitterId,
+    misskeyId
+  }
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-misskey-api-key': options.token,
+      'x-misskey-base-url': options.server,
+    },
+    body: JSON.stringify(body),
+  })
+  
+  if (!res.ok) {
+    console.error('[Misstter] Failed to save link pair to API', await res.text())
   }
 }

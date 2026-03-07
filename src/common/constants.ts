@@ -1,4 +1,5 @@
 export const DEFAULT_INSTANCE_URL = "https://misskey.io";
+export const BACKEND_API_URL = "http://localhost:5173";
 
 /**
  * リプライボタンの文字列一覧
