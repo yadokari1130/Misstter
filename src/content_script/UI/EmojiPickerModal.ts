@@ -29,10 +29,26 @@ const fetchEmojis = async (): Promise<Emoji[]> => {
 };
 
 const insertTextToTweetTextarea = (text: string) => {
-  const textarea = document.querySelector('div[data-testid="tweetTextarea_0"]') as HTMLElement;
+  let textarea: HTMLElement | null = null;
+  const renoteTextarea = document.getElementById('misskey-renote-textarea') as HTMLTextAreaElement | null;
+  
+  if (renoteTextarea && renoteTextarea.offsetParent !== null) {
+      textarea = renoteTextarea;
+  } else {
+      textarea = document.querySelector('div[data-testid="tweetTextarea_0"]') as HTMLElement | null;
+  }
+
   if (!textarea) return;
 
   textarea.focus();
+
+  if (textarea instanceof HTMLTextAreaElement) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      textarea.setRangeText(text, start, end, 'end');
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+  }
 
   try {
     document.execCommand('insertText', false, text);
@@ -55,6 +71,16 @@ const insertTextToTweetTextarea = (text: string) => {
 export const isShowingEmojiPickerModal = () => {
   return emojiPickerModal ? document.body.contains(emojiPickerModal) : false;
 };
+
+export const isEmojiPickerModalElement = (element: any) => {
+  if (!emojiPickerModal) return false;
+  let target = element;
+  while (target) {
+    if (target === emojiPickerModal) return true;
+    target = target.parentNode;
+  }
+  return false;
+}
 
 export const closeEmojiPickerModal = () => {
   if (!isShowingEmojiPickerModal() || !emojiPickerModal) return;

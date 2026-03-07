@@ -83,7 +83,7 @@ const createScopeModal = (callback: (scope: Scope) => void) => {
 
   <ul class='misskey_access_scope'>
     <h5>
-      公開範囲 <span style='font-size: 12px; color: rgb(101, 119, 134);'> (Misskey) </span>
+      <span style='font-size: 12px; color: rgb(101, 119, 134);'> 公開範囲 (Misskey) </span>
     </h5>
 
     <li selcted>
@@ -117,6 +117,7 @@ const createScopeModal = (callback: (scope: Scope) => void) => {
       } else if (i === 2) {
         callback('followers');
       }
+      closeScopeModal();
     })
   });
 
@@ -175,10 +176,21 @@ export const isShowingScopeModal = () => {
   return document.body.contains(scopeModel);
 }
 
+export const isScopeModalElement = (element: any) => {
+  if (!scopeModel) return false;
+  let target = element;
+  while (target) {
+    if (target === scopeModel) return true;
+    target = target.parentNode;
+  }
+  return false;
+}
+
 const handleDocumentClick = (e: MouseEvent) => {
   let target: any = e.target;
   while (target) {
     if (target.className === "misskey-scope-button") return;
+    if (target === scopeModel) return;
     target = target.parentNode;
   }
   closeScopeModal();
