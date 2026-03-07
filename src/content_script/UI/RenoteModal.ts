@@ -26,7 +26,7 @@ const createRenoteButton = (textArea: any) => {
             const url = button.parentElement?.parentElement?.getAttribute('url');
             const text = `${textArea.value}\n\n${url}`;
             const options = { cw, token, server, sensitive, scope: scope as Scope, localOnly }
-            await postToMisskey(text ?? '', [], null, options);
+            await postToMisskey(text ?? '', [], [], options);
         } catch (e) {
             console.error(e)
             showNotification('Misskeyへの投稿に失敗しました', 'error')

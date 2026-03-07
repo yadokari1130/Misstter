@@ -19,27 +19,44 @@ const getQuoteRTUrl = async (): Promise<string | null> => {
   return null;
 }
 
+const truncateText = (text: string, maxLength: number) => {
+  const chars = Array.from(text);
+  if (chars.length <= maxLength) return text;
+  return chars.slice(0, maxLength - 3).join('') + '...';
+};
+
 const getTweetText = () => {
-  const textContents = document.querySelectorAll('div[data-testid="tweetTextarea_0"] div[data-block="true"], textarea[data-testid="tweetTextarea_0"]');
-  if (!textContents) return;
-  const text = Array.from(textContents).map((textContent) => {
-    return textContent.textContent;
-  }).join('\n');
+  let text = "";
+  for (let i = 0; i < 20; i++) {
+    let textContents = document.querySelectorAll(`div[role="dialog"] div[data-testid="tweetTextarea_${i}"] div[data-block="true"], div[role="dialog"] textarea[data-testid="tweetTextarea_${i}"]`);
+    if (textContents.length === 0) textContents = document.querySelectorAll(`div[data-testid="tweetTextarea_${i}"] div[data-block="true"], textarea[data-testid="tweetTextarea_${i}"]`);
+
+    if (!textContents || textContents.length === 0) continue;
+    text += Array.from(textContents).map((textContent) => {
+      return textContent.textContent;
+    }).join('\n') + '\n\n';
+  }
 
   return text;
 }
 
-const getTweetVideo = async () => {
-  const video = document.querySelector("div[data-testid='attachments'] video > source");
-  if (!video) return null;
-  const videoRoot = video.parentElement?.parentElement
-  const flagButton = videoRoot?.querySelector(`.${misskeyFlagClassName}`)
-  const isFlagged = flagButton?.getAttribute(misskeyFlagAttribute) === "true";
-  const url = video.getAttribute('src');
-  if (!url) return null;
-  if (!url.startsWith("blob:")) return null;
-  const blob = await fetch(url).then(res => res.blob())
-  return { blob: blob, isSensitive: isFlagged };
+const getTweetVideos = async () => {
+  const videos = document.querySelectorAll("div[data-testid='attachments'] video > source");
+  
+  const res: Attachment[] = []
+
+  for (const video of videos) {
+    const videoRoot = video.parentElement?.parentElement
+    const flagButton = videoRoot?.querySelector(`.${misskeyFlagClassName}`)
+    const isFlagged = flagButton?.getAttribute(misskeyFlagAttribute) === "true";
+    const url = video.getAttribute('src');
+    if (!url) continue;
+    if (!url.startsWith("blob:")) continue;
+    const blob = await fetch(url).then(res => res.blob())
+    res.push({blob: blob, isSensitive: isFlagged})
+  }
+
+  return res;
 }
 
 const getTweetImages: () => Promise<Attachment[]> = async () => {
@@ -63,14 +80,14 @@ const getTweetImages: () => Promise<Attachment[]> = async () => {
 
 export const tweetToMisskey = async () => {
   try {
-    let text = getTweetText() ?? "";
+    let text = truncateText(getTweetText() ?? "", 3000);
     const images = await getTweetImages();
-    const video = await getTweetVideo();
+    const videos = await getTweetVideos();
     
     const quoteUrl = await getQuoteRTUrl();
     if (quoteUrl) text = text ? `${text}\n${quoteUrl}` : quoteUrl;
   
-    if (!text && images.length == 0 && !video) {
+    if (!text && images.length == 0 && videos.length == 0) {
       showNotification('Misskeyへの投稿内容がありません', 'error')
       return;
     }
@@ -80,7 +97,7 @@ export const tweetToMisskey = async () => {
     ])
   
     const options = { cw, token, server, sensitive, scope: scope as Scope, localOnly }
-    await postToMisskey(text, images, video, options);
+    await postToMisskey(text, images, videos, options);
   } catch (e) {
     console.error(e)
     showNotification('Misskeyへの投稿に失敗しました', 'error')

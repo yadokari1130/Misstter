@@ -22,35 +22,35 @@ const makeAttachmentData = async (image: Attachment) => {
   return { data: base64, isSensitive: image.isSensitive }
 }
 
-export const postToMisskey = async (text: string, images: Attachment[], video: Attachment|null, options: PostOptions) => {
+export const postToMisskey = async (text: string, images: Attachment[], videos: Attachment[], options: PostOptions) => {
   const imageData = await Promise.all(images.map(async (image) => {
     return await makeAttachmentData(image)
   }))
-  const videoData = video ? await makeAttachmentData(video) : undefined
+  const videoData = await Promise.all(videos.map(async (video) => {
+    return await makeAttachmentData(video)
+  }))
 
-  let uploadNotification: Notification|undefined = undefined
+  let uploadNotifications: Notification[] = []
   if (imageData.length != 0) {
-    uploadNotification = showNotification('画像をアップロードしています...', 'success', 1000_0000)
+    uploadNotifications.push(showNotification('画像をアップロードしています...', 'success', 1000_0000))
   }
 
-  if (videoData) {
-    uploadNotification = showNotification('動画をアップロードしています...', 'success', 1000_0000)
+  if (videoData.length != 0) {
+    uploadNotifications.push(showNotification('動画をアップロードしています...', 'success', 1000_0000))
   }
 
-  const attachments = imageData
-  if (videoData) {
-    attachments.push(videoData)
-  }
+  const attachments = [...imageData, ...videoData]
 
   const postMessage: PostMessage = {
     type: 'post', text: text, options: options, attachments
   }
  
   try {
-    uploadNotification?.close()
+    uploadNotifications.forEach(notification => notification.close())
     await browser.runtime.sendMessage(postMessage)
     showNotification('Misskeyへの投稿に成功しました', 'success')
   } catch (error: any) {
+    uploadNotifications.forEach(notification => notification.close())
     showNotification(error.message, 'error')
   }
 }
