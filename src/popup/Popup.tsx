@@ -12,9 +12,10 @@ const Popup = () => {
   const [showAccess, setShowAccess] = useState<boolean | null>(null)
   const [showLocalOnly, setShowLocalOnly] = useState<boolean | null>(null)
   const [autoTweet, setAutoTweet] = useState<boolean | null>(null)
+  const [selfReply, setSelfReply] = useState<boolean | null>(null)
 
   useEffect(() => {
-    browser.storage.sync.get(['misskey_token', 'misskey_server', 'misskey_cw', 'misskey_sensitive', 'misskey_access', 'misskey_show_local_only', 'misskey_auto_tweet']).then((result) => {
+    browser.storage.sync.get(['misskey_token', 'misskey_server', 'misskey_cw', 'misskey_sensitive', 'misskey_access', 'misskey_show_local_only', 'misskey_auto_tweet', 'misskey_self_reply']).then((result) => {
       const token = result?.misskey_token; if (token) { setToken(token) }
       const server = result?.misskey_server; if (server) { setServer(server) }
       setCw(result?.misskey_cw)
@@ -22,6 +23,7 @@ const Popup = () => {
       setShowAccess(result?.misskey_access)
       setShowLocalOnly(result?.misskey_show_local_only)
       setAutoTweet(result?.misskey_auto_tweet)
+      setSelfReply(result?.misskey_self_reply)
     })
   }, [])
   
@@ -55,6 +57,12 @@ const Popup = () => {
   const updateAutoTweet = (autoTweet: boolean) => {
       setAutoTweet(autoTweet)
       browser.storage.sync.set({misskey_auto_tweet: autoTweet})
+  }
+
+  const updateSelfReply = (selfReply: boolean) => {
+      setSelfReply(selfReply)
+      browser.storage.sync.set({misskey_self_reply: selfReply})
+      if (selfReply) updateAutoTweet(true)
   }
 
   const openDonationPage = () => {
@@ -155,11 +163,29 @@ const Popup = () => {
         <FormControlLabel
           control={<Checkbox
               checked={autoTweet ?? false}
+              disabled={selfReply ?? false}
               onChange={(e) => {
                   updateAutoTweet(e.target.checked)
               }}
           />}
           label={<Typography style={{ fontSize: 15 }}>Misskeyへの投稿後自動的にツイートする。</Typography>}
+        />
+
+        <FormControlLabel
+          control={<Checkbox
+              checked={selfReply ?? false}
+              onChange={(e) => {
+                  updateSelfReply(e.target.checked)
+              }}
+          />}
+          label={
+            <div style={{ marginTop: 8, marginBottom: 8 }}>
+              <Typography style={{ fontSize: 15 }}>セルフリプライに対応する。</Typography>
+              <Typography variant="body2" sx={{ fontSize: 10, color: 'text.secondary' }}>
+                この項目をオンにしたことで利用規約に同意したとみなします。
+              </Typography>
+            </div>
+          }
         />
 
         <Typography
