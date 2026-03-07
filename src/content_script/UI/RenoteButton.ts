@@ -13,7 +13,6 @@ export const createRenoteButton = (url: string) => {
     misskeyIcon.style.userSelect = 'none';
 
     const renoteButton = document.createElement('div');
-    renoteButton.setAttribute('url', url);
     renoteButton.className = renoteButtonClassName;
     renoteButton.appendChild(misskeyIcon);
 
@@ -46,7 +45,7 @@ export const createRenoteButton = (url: string) => {
         if (isShowingRenoteModal()) {
             closeRenoteModal();
         } else {
-            showRenoteModal(renoteButton, renoteButton.getAttribute('url') || '');
+            showRenoteModal(renoteButton, url);
         }
     }
 
