@@ -9,6 +9,7 @@ module.exports = (browser_name, mode) => {
           popup: path.join(srcDir, 'popup/Popup.tsx'),
           content_script: path.join(srcDir, 'content_script/contents.ts'),
           background: path.join(srcDir, 'background/background.ts'),
+          misskey_fetch_patch: path.join(srcDir, 'injected/misskey_fetch_patch.ts'),
         },
 
         output: {

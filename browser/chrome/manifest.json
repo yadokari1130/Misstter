@@ -30,7 +30,20 @@
             "https://x.com/*",
             "https://pro.x.com/*"
           ],
-          "js": ["js/vendor.js", "js/content_script.js"]
+          "js": ["js/vendor.js", "js/content_script.js"],
+          "run_at": "document_start"
+      },
+      {
+          "matches": [
+            "https://twitter.com/*",
+            "https://tweetdeck.twitter.com/*",
+            "https://pro.twitter.com/*",
+            "https://x.com/*",
+            "https://pro.x.com/*"
+          ],
+          "js": ["js/misskey_fetch_patch.js"],
+          "run_at": "document_start",
+          "world": "MAIN"
       }
   ],
 
@@ -49,7 +62,8 @@
   "web_accessible_resources": [
     { 
       "resources": [
-        "misskey_icon.png"
+        "misskey_icon.png",
+        "js/misskey_fetch_patch.js"
       ], 
       "matches": [
         "https://twitter.com/*",

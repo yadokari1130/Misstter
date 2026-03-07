@@ -18,6 +18,18 @@ const getQuoteRTUrl = async (): Promise<string | null> => {
   if (/@\w+/.test(text)) return url;
   return null;
 }
+const injectFetchPatch = () => {
+    if ((window as any).__misstter_fetch_patch_injected) return;
+    (window as any).__misstter_fetch_patch_injected = true;
+    
+    const script = document.createElement('script');
+    script.src = browser.runtime.getURL('js/misskey_fetch_patch.js');
+    script.async = false;
+    (document.head || document.documentElement).prepend(script);
+};
+
+injectFetchPatch();
+
 
 const truncateText = (text: string, maxLength: number) => {
   const chars = Array.from(text);
