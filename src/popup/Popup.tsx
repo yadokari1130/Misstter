@@ -101,8 +101,10 @@ const Popup = () => {
         />
 
         <Typography variant="body2" sx={{ mt: 2, mb: 2, fontSize: 10 }}>
-          Tokenはお使いのMisskeyサーバーの 「設定 &#62; API」の画面から取得できます。
-          投稿権限とファイルアップロード権限が必要です。(全てを許可すると自動で設定されます)
+          Tokenはお使いのMisskeyサーバーの 「設定 &#62; API」の画面から取得できます。<br/>
+          「ドライブを操作する」と「ノートを作成・削除する」の権限が必須です。<br/>
+          「セルフリプライに対応する。」機能を利用するためには「アカウントの情報を見る」の権限も必要です。<br/>
+          APIキーを設定することにより、<a href="https://github.com/yadokari1130/Misstter/blob/main/TERMS_OF_SERVICE.md" target="_blank" rel="noreferrer">利用規約</a>および<a href="https://github.com/yadokari1130/Misstter/blob/main/PRIVACY_POLICY.md" target="_blank" rel="noreferrer">プライバシーポリシー</a>に同意したものとみなされます。
         </Typography>
 
         <TextField  
@@ -178,14 +180,7 @@ const Popup = () => {
                   updateSelfReply(e.target.checked)
               }}
           />}
-          label={
-            <div style={{ marginTop: 8, marginBottom: 8 }}>
-              <Typography style={{ fontSize: 15 }}>セルフリプライに対応する。</Typography>
-              <Typography variant="body2" sx={{ fontSize: 10, color: 'text.secondary' }}>
-                この項目をオンにしたことで利用規約に同意したとみなします。
-              </Typography>
-            </div>
-          }
+          label={<Typography style={{ fontSize: 15 }}>セルフリプライに対応する。</Typography>}
         />
 
         <Typography
