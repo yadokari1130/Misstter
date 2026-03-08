@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import { PostMessage } from "../common/CommonType"
-import { postToMisskey, saveLinkPair } from "./MisskeyAPI"
+import { postToMisskey, saveLinkPair, getMisskeyIdByTwitterId } from "./MisskeyAPI"
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type == 'post') {
@@ -10,6 +10,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type == 'saveLinkPair') {
     return saveLinkPair(message.twitterId, message.misskeyId, message.options);
+  }
+
+  if (message.type === 'getLinkPair') {
+    return getMisskeyIdByTwitterId(message.twitterId, message.options);
   }
 
 

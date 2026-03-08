@@ -2,6 +2,7 @@ import { postToMisskey } from './PostAPI'
 import { showNotification } from '../UI/Notification'
 import { Scope } from '../UI/ScopeModal';
 import { misskeyFlagAttribute, misskeyFlagClassName } from '../UI/ImageFlagButton';
+import { misskeyButtonClassName } from '../UI/MisskeyPostButton';
 import { getCW, getLocalOnly, getScope, getSensitive, getServer, getToken } from "./StorageReader"
 import { Attachment } from '../../common/CommonType';
 import browser from 'webextension-polyfill';
@@ -135,11 +136,20 @@ const getTweetImages: () => Promise<Attachment[]> = async () => {
   return res;
 }
 
+const getReplyMisskeyId = (): string | undefined => {
+  const dialogButton = document.querySelector(`div[role="dialog"] .${misskeyButtonClassName}[data-reply-misskey-id]`);
+  if (dialogButton) return dialogButton.getAttribute('data-reply-misskey-id') || undefined;
+
+  const anyButton = document.querySelector(`.${misskeyButtonClassName}[data-reply-misskey-id]`);
+  return anyButton?.getAttribute('data-reply-misskey-id') || undefined;
+}
+
 export const tweetToMisskey = async () => {
   try {
     let text = truncateText(getTweetText() ?? "", 3000);
     const images = await getTweetImages();
     const videos = await getTweetVideos();
+    const replyId = getReplyMisskeyId();
     
     const quoteUrl = await getQuoteRTUrl();
     if (quoteUrl) text = text ? `${text}\n${quoteUrl}` : quoteUrl;
@@ -153,7 +163,7 @@ export const tweetToMisskey = async () => {
       getToken(), getServer(), getCW(), getSensitive(), getScope(), getLocalOnly(),
     ])
   
-    const options = { cw, token, server, sensitive, scope: scope as Scope, localOnly }
+    const options = { cw, token, server, sensitive, scope: scope as Scope, localOnly, replyId }
     const noteId = await postToMisskey(text, images, videos, options);
     if (noteId) {
       setLatestNoteId(noteId, options);

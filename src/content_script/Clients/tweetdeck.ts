@@ -5,15 +5,19 @@ import { createMisskeyPostButton, misskeyButtonClassName, syncDisableState } fro
 import { createMisskeyImageOptionButton } from "../UI/ImageFlagButton"
 // DeckではTwitterCrawlerがそのまま使用可能
 import { tweetToMisskey } from '../System/TwitterCrawler';
-import { createLocalOnlyButton, localOnlyButtonClassName } from "../UI/LocalOnlyButton";
 import { createEmojiPickerButton, emojiPickerButtonClassName } from "../UI/EmojiPickerButton";
+import { getCW, getLocalOnly, getScope, getSensitive, getServer, getToken } from "../System/StorageReader"
+import { createLocalOnlyButton, localOnlyButtonClassName } from "../UI/LocalOnlyButton";
 
 // ミスキーへの投稿ボタンを追加する
-const addMisskeyPostButton = (tweetButton: HTMLElement, tweetBox: HTMLElement) => {
+const addMisskeyPostButton = (tweetButton: HTMLElement, tweetBox: HTMLElement, replyMisskeyId?: string) => {
   // すでにボタンがある場合は何もしない
   if (tweetBox.querySelector(`.${misskeyButtonClassName}`)) return;
 
   const misskeybutton = createMisskeyPostButton(tweetToMisskey, tweetButton);
+  if (replyMisskeyId) {
+    misskeybutton.setAttribute('data-reply-misskey-id', replyMisskeyId);
+  }
   misskeybutton.style.width = "40px"
   misskeybutton.style.height = "30px"
   misskeybutton.style.marginLeft = "8px"
@@ -49,16 +53,53 @@ const addMisskeyImageOptionButton = (editButton: HTMLElement, attachmentsImage: 
   editButton.parentElement!.insertBefore(misskeybutton, editButton);
 }
 
-const foundTweetButtonHandler = (tweetButton: HTMLElement) => {
+const getReplyTweetId = (): string | null => {
+  const match = window.location.href.match(/\/status\/(\d+)/);
+  if (match) return match[1];
+  
+  const dialog = document.querySelector('div[role="dialog"]');
+  if (dialog) {
+    const timeLink = dialog.querySelector('time')?.parentElement as HTMLAnchorElement;
+    if (timeLink && timeLink.href) {
+      const modalMatch = timeLink.href.match(/\/status\/(\d+)/);
+      if (modalMatch) return modalMatch[1];
+    }
+  }
+  
+  return null;
+}
+
+const foundTweetButtonHandler = async (tweetButton: HTMLElement) => {
   if (!tweetButton) return;
 
-  // リプライボタンの場合は後続の処理を行わない
+  let replyMisskeyId: string | undefined = undefined;
+  
   const isReplyButton = REPLY_BUTTON_LABELS.indexOf(tweetButton.innerText) !== -1;
-  if (isReplyButton) return;
+  if (isReplyButton) {
+    const replyTweetId = getReplyTweetId();
+    if (replyTweetId) {
+      try {
+        const [token, server] = await Promise.all([getToken(), getServer()]);
+        const misskeyId = await browser.runtime.sendMessage({
+          type: 'getLinkPair',
+          twitterId: replyTweetId,
+          options: { token, server }
+        });
+        
+        if (misskeyId) replyMisskeyId = misskeyId;
+        else return;
+      } catch (e) {
+        console.error('[Misstter] Failed to check reply link', e);
+        return;
+      }
+    } else {
+      return;
+    }
+  }
 
   // add misskey post button
   const tweetBox = tweetButton.parentElement?.parentElement as HTMLElement;
-  if (tweetBox) { addMisskeyPostButton(tweetButton, tweetBox); }
+  if (tweetBox) { addMisskeyPostButton(tweetButton, tweetBox, replyMisskeyId); }
 
 
   // // add scope button and local only button
