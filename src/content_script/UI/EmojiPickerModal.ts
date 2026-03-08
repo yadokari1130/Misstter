@@ -12,7 +12,7 @@ export type Emoji = {
 let cachedEmojis: Emoji[] | null = null;
 let emojiPickerModal: HTMLDivElement | null = null;
 
-const fetchEmojis = async (): Promise<Emoji[]> => {
+export const fetchEmojis = async (): Promise<Emoji[]> => {
   if (cachedEmojis) return cachedEmojis;
   try {
     const server = await getServer();

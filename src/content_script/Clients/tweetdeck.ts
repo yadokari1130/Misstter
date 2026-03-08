@@ -8,6 +8,7 @@ import { tweetToMisskey } from '../System/TwitterCrawler';
 import { createEmojiPickerButton, emojiPickerButtonClassName } from "../UI/EmojiPickerButton";
 import { getCW, getLocalOnly, getScope, getSensitive, getServer, getToken } from "../System/StorageReader"
 import { createLocalOnlyButton, localOnlyButtonClassName } from "../UI/LocalOnlyButton";
+import { fetchEmojis } from '../UI/EmojiPickerModal';
 
 // ミスキーへの投稿ボタンを追加する
 const addMisskeyPostButton = (tweetButton: HTMLElement, tweetBox: HTMLElement, replyMisskeyId?: string) => {
@@ -130,6 +131,150 @@ const foundAttachmentsImageHandler = (attachmentsImage: HTMLElement) => {
   addMisskeyImageOptionButton(editButton, attachmentsImage);
 }
 
+let zoomedEmojiContainer: HTMLDivElement | null = null;
+
+const createZoomedEmojiContainer = () => {
+  if (zoomedEmojiContainer) return;
+  zoomedEmojiContainer = document.createElement('div');
+  zoomedEmojiContainer.style.position = 'fixed';
+  zoomedEmojiContainer.style.zIndex = '999999';
+  zoomedEmojiContainer.style.pointerEvents = 'none';
+  zoomedEmojiContainer.style.visibility = 'hidden';
+  zoomedEmojiContainer.style.opacity = '0';
+  zoomedEmojiContainer.style.transform = 'scale(0.8)';
+  zoomedEmojiContainer.style.transition = 'opacity 0.1s ease-out, transform 0.1s ease-out';
+  zoomedEmojiContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  zoomedEmojiContainer.style.borderRadius = '8px';
+  zoomedEmojiContainer.style.padding = '8px';
+  zoomedEmojiContainer.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+  
+  const img = document.createElement('img');
+  img.style.height = '10em';
+  img.style.maxWidth = '90vw';
+  img.style.maxHeight = '90vh';
+  img.style.objectFit = 'contain';
+  zoomedEmojiContainer.appendChild(img);
+  
+  document.body.appendChild(zoomedEmojiContainer);
+}
+
+const showZoomedEmoji = (imgEl: HTMLImageElement) => {
+  if (!zoomedEmojiContainer) createZoomedEmojiContainer();
+  if (!zoomedEmojiContainer) return;
+  
+  const img = zoomedEmojiContainer.querySelector('img');
+  if (img) img.src = imgEl.src;
+  
+  zoomedEmojiContainer.style.visibility = 'hidden';
+  zoomedEmojiContainer.style.display = 'block';
+  
+  const rect = imgEl.getBoundingClientRect();
+  
+  requestAnimationFrame(() => {
+    if (!zoomedEmojiContainer) return;
+    const zoomWidth = zoomedEmojiContainer.offsetWidth;
+    const zoomHeight = zoomedEmojiContainer.offsetHeight;
+    
+    let left = rect.right + 10;
+    let top = rect.top + (rect.height / 2) - (zoomHeight / 2);
+    
+    if (left + zoomWidth > window.innerWidth) {
+      left = rect.left - zoomWidth - 10;
+    }
+    
+    if (top < 10) top = 10;
+    if (top + zoomHeight + 10 > window.innerHeight) top = window.innerHeight - zoomHeight - 10;
+    
+    zoomedEmojiContainer.style.left = `${left}px`;
+    zoomedEmojiContainer.style.top = `${top}px`;
+    
+    zoomedEmojiContainer.style.visibility = 'visible';
+    zoomedEmojiContainer.style.opacity = '1';
+    zoomedEmojiContainer.style.transform = 'scale(1)';
+  });
+}
+
+const hideZoomedEmoji = () => {
+  if (zoomedEmojiContainer) {
+    zoomedEmojiContainer.style.opacity = '0';
+    zoomedEmojiContainer.style.transform = 'scale(0.8)';
+    setTimeout(() => {
+      if (zoomedEmojiContainer && zoomedEmojiContainer.style.opacity === '0') {
+        zoomedEmojiContainer.style.visibility = 'hidden';
+      }
+    }, 100);
+  }
+}
+
+const foundTweetTextHandler = async (tweetText: HTMLElement) => {
+  if (tweetText.getAttribute('data-misskey-emoji-processed') === 'true') return;
+  tweetText.setAttribute('data-misskey-emoji-processed', 'true');
+
+  const emojis = await fetchEmojis();
+  if (emojis.length === 0) return;
+
+  const emojiMap = new Map(emojis.map(e => [e.name, e.url]));
+  const regex = /:([a-zA-Z0-9_]+):(?![a-zA-Z0-9])/g;
+
+  const walker = document.createTreeWalker(tweetText, NodeFilter.SHOW_TEXT, null);
+  const textNodes: Text[] = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    textNodes.push(node as Text);
+  }
+
+  for (const textNode of textNodes) {
+    const text = textNode.nodeValue;
+    if (!text || !regex.test(text)) continue;
+
+    regex.lastIndex = 0;
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      const emojiName = match[1];
+      const emojiUrl = emojiMap.get(emojiName);
+
+      if (emojiUrl) {
+        if (match.index > lastIndex) {
+          fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+        }
+
+        const img = document.createElement('img');
+        img.alt = `:${emojiName}:`;
+        img.style.height = '2em';
+        img.style.verticalAlign = 'middle';
+        img.style.margin = '0 0.05em';
+        img.style.cursor = 'pointer';
+        
+        browser.runtime.sendMessage({ type: 'fetchImage', url: emojiUrl }).then((dataUrl: unknown) => {
+          if (typeof dataUrl === 'string') img.src = dataUrl;
+        }).catch(console.error);
+
+        img.addEventListener('mouseenter', () => {
+          if (img.src) showZoomedEmoji(img);
+        });
+        
+        img.addEventListener('mouseleave', () => {
+          hideZoomedEmoji();
+        });
+
+        fragment.appendChild(img);
+        lastIndex = regex.lastIndex;
+      }
+    }
+
+    if (lastIndex < text.length) {
+      fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+    }
+    
+    if (lastIndex > 0) {
+      textNode.parentNode?.replaceChild(fragment, textNode);
+    }
+  }
+}
+
 const gifButtonSelector = 'div[data-testid="gifSearchButton"]'
 const buttonSelector = '//*[@id="react-root"]/div/div/div[3]/div/div[2]/div/div/div[1]/div/div/div/div[3]/div'
 const attachmentsImageSelector = 'div[data-testid="attachments"] div[role="group"]'
@@ -178,6 +323,13 @@ const observer = new MutationObserver(mutations => {
         if (tweets) {
           tweets.forEach(tweet => {
             foundTweetHandler(tweet as HTMLElement);
+          })
+        }
+
+        const tweetTexts = document.querySelectorAll('div[data-testid="tweetText"]');
+        if (tweetTexts) {
+          tweetTexts.forEach(tweetText => {
+            foundTweetTextHandler(tweetText as HTMLElement);
           })
         }
       });
