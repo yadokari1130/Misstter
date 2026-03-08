@@ -243,6 +243,7 @@ const foundTweetTextHandler = async (tweetText: HTMLElement) => {
 
         const img = document.createElement('img');
         img.alt = `:${emojiName}:`;
+        img.style.display = 'inline-block';
         img.style.height = '2em';
         img.style.verticalAlign = 'middle';
         img.style.margin = '0 0.05em';
