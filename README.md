@@ -1,12 +1,16 @@
 # Misstter
 
-MisstterはTwitterにMisskeyへの投稿ボタンを追加するChrome拡張です。
+MisstterはXに以下の機能を追加するブラウザ拡張機能です。
+
+- Misskeyへの投稿ボタンの追加
+- Misskeyへの引用リノートボタンの追加
+- 絵文字ピッカーの追加、X上での絵文字の表示
 
 # インストール方法
 
 ## Chromeの場合
 
-1. `Misstter_Chrome.zip` をこの下部からダウンロード & 展開
+1. `Misstter_Chrome_x.x.x.zip` を[ここからダウンロード](https://github.com/yadokari1130/Misstter/releases/latest) & 展開
 2. [chrome://extensions/](chrome://extensions/) を開く
 3. 「デベロッパーモード」を有効にする。
 4. 「パッケージ化されていない拡張機能を読み込む」から展開したフォルダを開く
@@ -15,26 +19,20 @@ MisstterはTwitterにMisskeyへの投稿ボタンを追加するChrome拡張で�
 
 ## Firefoxの場合
 
-1. `Misstter_Firefox.xpi` をこの下部からダウンロード
-2.  about:addons を開く
-3.  右上の歯車マークから「ファイルからアドオンをインストール」
-6. MisskeyのトークンをPopupに入力
-7. (必要があれば) Popup に Misskey サーバーを入力
+準備中です。
 
 
 
 > PopupはChrome/Firefoxの右上の拡張機能ボタンからアクセスできます。
 > 
 > Misskey APIの発行は `Settings > API > アクセストークンの発行` から行ってください。
->  (全てを有効にしてください。)
+> 「ドライブを操作する」「ノートを作成・削除する」の権限が必須です。
+> 「セルフリプライに対応する。」機能を利用するためには「アカウントの情報を見る」の権限も必要です。
 
 ##### 注意
 
 Chromeへのインストールは開発者モードを用います。
 作者が確認していますので、マルウェアが入ることはほとんどないはずですが、リスクをご承知の上でご使用ください。
-
-現在Chromeストアに公開のための審査中です。不安がある方はChromeストアでの公開までお待ちください。
-Firefox版は検証が終わっているためそのまま利用可能です。
 
 ---
 
