@@ -43,12 +43,16 @@ export const createScopeButton = () => {
   scopeButton.style.justifyContent = 'center'
   scopeButton.style.borderRadius = '9999px';
   scopeButton.style.cursor = 'pointer';
-  scopeButton.style.transition = 'background-color 0.2s ease-in-out';
+  scopeButton.style.transitionProperty = 'transform, background-color, all';
+  scopeButton.style.transitionDuration = '0.15s, 0.2s, 0.15s';
+  scopeButton.style.transitionTimingFunction = 'ease-in-out';
   scopeButton.onmouseover = () => {
     scopeButton.style.backgroundColor = 'rgba(134, 179, 0, 0.1)';
+    scopeButton.style.transform = 'scale(1.12)';
   }
   scopeButton.onmouseout = () => {
     scopeButton.style.backgroundColor = 'transparent';
+    scopeButton.style.transform = 'scale(1)';
   }
 
   scopeButton.onclick = () => {

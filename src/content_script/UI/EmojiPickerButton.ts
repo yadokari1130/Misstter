@@ -26,7 +26,9 @@ export const createEmojiPickerButton = () => {
   emojiButton.style.justifyContent = 'center'
   emojiButton.style.borderRadius = '9999px';
   emojiButton.style.cursor = 'pointer';
-  emojiButton.style.transition = 'background-color 0.2s ease-in-out';
+  emojiButton.style.transitionProperty = 'transform, background-color, all';
+  emojiButton.style.transitionDuration = '0.15s, 0.2s, 0.15s';
+  emojiButton.style.transitionTimingFunction = 'ease-in-out';
   emojiButton.innerHTML = emoji_picker_icon;
 
   // Icons.tsのSVGに合わせたスタイル調整
@@ -39,9 +41,11 @@ export const createEmojiPickerButton = () => {
   emojiButton.onmouseover = () => {
     // 背景だけ薄緑になるように
     emojiButton.style.backgroundColor = 'rgba(134, 179, 0, 0.1)';
+    emojiButton.style.transform = 'scale(1.12)';
   }
   emojiButton.onmouseout = () => {
     emojiButton.style.backgroundColor = 'transparent';
+    emojiButton.style.transform = 'scale(1)';
   }
 
   emojiButton.onmousedown = (e) => {

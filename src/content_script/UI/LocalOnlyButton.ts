@@ -42,12 +42,16 @@ export const createLocalOnlyButton = () => {
     localOnlyButton.style.justifyContent = 'center'
     localOnlyButton.style.borderRadius = '9999px';
     localOnlyButton.style.cursor = 'pointer';
-    localOnlyButton.style.transition = 'background-color 0.2s ease-in-out';
+    localOnlyButton.style.transitionProperty = 'transform, background-color, all';
+    localOnlyButton.style.transitionDuration = '0.15s, 0.2s, 0.15s';
+    localOnlyButton.style.transitionTimingFunction = 'ease-in-out';
     localOnlyButton.onmouseover = () => {
         localOnlyButton.style.backgroundColor = 'rgba(134, 179, 0, 0.1)';
+        localOnlyButton.style.transform = 'scale(1.12)';
     }
     localOnlyButton.onmouseout = () => {
         localOnlyButton.style.backgroundColor = 'transparent';
+        localOnlyButton.style.transform = 'scale(1)';
     }
 
     localOnlyButton.onclick = () => {
