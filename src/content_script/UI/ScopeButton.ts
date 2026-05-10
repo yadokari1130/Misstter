@@ -27,17 +27,17 @@ export const createScopeButton = () => {
     });
   scopeButton.className = scopeButtonClassName;
   
-  scopeButton.style.minWidth = '34px';
-  scopeButton.style.width = '34px';
-  scopeButton.style.maxWidth = '34px';
+  scopeButton.style.minWidth = '36px';
+  scopeButton.style.width = '36px';
+  scopeButton.style.maxWidth = '36px';
   
-  scopeButton.style.minHeight = '34px';
-  scopeButton.style.height = '34px';
-  scopeButton.style.maxHeight = '34px';
+  scopeButton.style.minHeight = '36px';
+  scopeButton.style.height = '36px';
+  scopeButton.style.maxHeight = '36px';
 
   scopeButton.style.backgroundColor = 'transparent';
   scopeButton.style.display = 'flex'
-  scopeButton.style.margin = '0 1px';
+  scopeButton.style.margin = '2px';
   scopeButton.style.paddingTop = '0';
   scopeButton.style.alignItems = 'center'
   scopeButton.style.justifyContent = 'center'

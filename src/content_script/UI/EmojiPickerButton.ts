@@ -10,17 +10,17 @@ export const createEmojiPickerButton = () => {
   
   emojiButton.className = emojiPickerButtonClassName;
   
-  emojiButton.style.minWidth = '34px';
-  emojiButton.style.width = '34px';
-  emojiButton.style.maxWidth = '34px';
+  emojiButton.style.minWidth = '36px';
+  emojiButton.style.width = '36px';
+  emojiButton.style.maxWidth = '36px';
   
-  emojiButton.style.minHeight = '34px';
-  emojiButton.style.height = '34px';
-  emojiButton.style.maxHeight = '34px';
+  emojiButton.style.minHeight = '36px';
+  emojiButton.style.height = '36px';
+  emojiButton.style.maxHeight = '36px';
 
   emojiButton.style.backgroundColor = 'transparent';
   emojiButton.style.display = 'flex'
-  emojiButton.style.margin = '0 1px';
+  emojiButton.style.margin = '2px';
   emojiButton.style.paddingTop = '0';
   emojiButton.style.alignItems = 'center'
   emojiButton.style.justifyContent = 'center'
@@ -33,8 +33,8 @@ export const createEmojiPickerButton = () => {
   // 常に緑色のアイコンにする
   (emojiButton.children[0] as any).style.stroke = 'rgb(134, 179, 0)';
   (emojiButton.children[0] as any).style.fill = 'none';
-  (emojiButton.children[0] as any).style.width = '20px';
-  (emojiButton.children[0] as any).style.height = '20px';
+  (emojiButton.children[0] as any).style.width = '24px';
+  (emojiButton.children[0] as any).style.height = '24px';
 
   emojiButton.onmouseover = () => {
     // 背景だけ薄緑になるように

@@ -26,17 +26,17 @@ export const createLocalOnlyButton = () => {
         });
     localOnlyButton.className = localOnlyButtonClassName;
     
-    localOnlyButton.style.minWidth = '34px';
-    localOnlyButton.style.width = '34px';
-    localOnlyButton.style.maxWidth = '34px';
+    localOnlyButton.style.minWidth = '36px';
+    localOnlyButton.style.width = '36px';
+    localOnlyButton.style.maxWidth = '36px';
 
-    localOnlyButton.style.minHeight = '34px';
-    localOnlyButton.style.height = '34px';
-    localOnlyButton.style.maxHeight = '34px';
+    localOnlyButton.style.minHeight = '36px';
+    localOnlyButton.style.height = '36px';
+    localOnlyButton.style.maxHeight = '36px';
 
     localOnlyButton.style.backgroundColor = 'transparent';
     localOnlyButton.style.display = 'flex'
-    localOnlyButton.style.margin = '0 1px';
+    localOnlyButton.style.margin = '2px';
     localOnlyButton.style.paddingTop = '0';
     localOnlyButton.style.alignItems = 'center'
     localOnlyButton.style.justifyContent = 'center'

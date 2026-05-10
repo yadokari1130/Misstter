@@ -120,7 +120,7 @@ const foundTweetButtonHandler = async (tweetButton: HTMLElement) => {
   if (tweetBox) { addMisskeyPostButton(tweetButton, tweetBox, replyMisskeyId); }
 
   // add scope button and local only button
-  const iconsBlock = document.querySelector(gifButtonSelector)?.parentElement?.parentElement as HTMLElement;
+  const iconsBlock = document.querySelector(gifButtonSelector)?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement as HTMLElement;
   if (iconsBlock) {
     if (!iconsBlock.querySelector('.misskey-extension-break')) {
       iconsBlock.style.flexWrap = 'wrap';
