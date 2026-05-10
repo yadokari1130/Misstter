@@ -17,6 +17,8 @@ const editButtonSelector = 'button[role="button"]'
 const bookmarkButtonSelector = 'button[data-testid="bookmark"],button[data-testid="removeBookmark"]'
 const retweetButtonSelector = 'button[data-testid="retweet"]'
 const tweetSelector = 'article[data-testid="tweet"]'
+const replyButtonSelector = 'button[data-testid="reply"]'
+const postButtonSelector = 'div[data-testid="FloatingActionButtonBase"]'
 
 
 //リノートボタンを作成する
@@ -69,16 +71,22 @@ const addMisskeyImageOptionButton = (editButton: HTMLElement, attachmentsImage: 
   editButton.parentElement!.insertBefore(misskeybutton, editButton);
 }
 
-const getReplyTweetId = (): string | null => {
-  const match = window.location.href.match(/\/status\/(\d+)/);
+const extractTweetId = (url: string) => {
+  const match = url.match(/(?:https?:\/\/(?:x|twitter)\.com)?\/[^\/]+\/status\/(\d+)/);
   if (match) return match[1];
+  return null;
+}
+
+const getReplyTweetId = (): string | null => {
+  const locationId = extractTweetId(window.location.href)
+  if (locationId) return locationId;
   
   const dialog = document.querySelector('div[role="dialog"]');
   if (dialog) {
     const timeLink = dialog.querySelector('time')?.parentElement as HTMLAnchorElement;
     if (timeLink && timeLink.href) {
-      const modalMatch = timeLink.href.match(/\/status\/(\d+)/);
-      if (modalMatch) return modalMatch[1];
+      const modalId = extractTweetId(timeLink.href);
+      if (modalId) return modalId;
     }
   }
   
@@ -90,30 +98,38 @@ const foundTweetButtonHandler = async (tweetButton: HTMLElement) => {
 
   const buttonText = tweetButton.innerText.trim();
 
-  let replyMisskeyId: string | undefined = undefined;
+  let replyTweetId: string | null = null;
   
   const isReplyButton = REPLY_BUTTON_LABELS.indexOf(buttonText) !== -1;
   if (isReplyButton) {
-    const replyTweetId = getReplyTweetId();
-    if (replyTweetId) {
-      try {
-        const [token, server] = await Promise.all([getToken(), getServer()]);
-        const misskeyId = await browser.runtime.sendMessage({
-          type: 'getLinkPair',
-          twitterId: replyTweetId,
-          options: { token, server }
-        });
-        
-        if (misskeyId) replyMisskeyId = misskeyId;
-        else return;
-      } catch (e) {
-        console.error('[Misstter] Failed to check reply link', e);
-        return;
-      }
-    } else {
+    replyTweetId = getReplyTweetId();
+  }
+  if (!replyTweetId) {
+    const result = await browser.storage.local.get("misskey_last_reply_url");
+    const replyUrl = result?.misskey_last_reply_url as string;
+    if (replyUrl) replyTweetId = extractTweetId(replyUrl);
+    await browser.storage.local.remove("misskey_last_reply_url");
+  }
+
+  let replyMisskeyId: string | undefined = undefined;
+  if (replyTweetId) {
+    try {
+      const [token, server] = await Promise.all([getToken(), getServer()]);
+      const misskeyId = await browser.runtime.sendMessage({
+        type: 'getLinkPair',
+        twitterId: replyTweetId,
+        options: { token, server }
+      });
+      
+      if (misskeyId) replyMisskeyId = misskeyId;
+      else return;
+    } catch (e) {
+      console.error('[Misstter] Failed to check reply link', e);
       return;
     }
   }
+  
+  if (isReplyButton && !replyMisskeyId) return;
 
   // add misskey post button
   const tweetBox = tweetButton.parentElement as HTMLElement;
@@ -177,6 +193,27 @@ const foundTweetHandler = (tweet: HTMLElement) => {
       if (tweetUrl) browser.storage.local.set({ misskey_last_quote_url: tweetUrl });
     });
   }
+
+  const replyButton = tweet.querySelector(replyButtonSelector);
+  if (replyButton && !replyButton.hasAttribute('data-misskey-reply-hooked')) {
+    replyButton.setAttribute('data-misskey-reply-hooked', 'true');
+    replyButton.addEventListener('click', () => {
+      if (tweetUrl) browser.storage.local.set({ misskey_last_reply_url: tweetUrl });
+    });
+  }
+}
+
+const foundPostButtonHandler = (postButton: HTMLElement) => {
+  if (postButton.hasAttribute('data-misskey-reply-hooked')) return;
+  
+  const match = window.location.href.match(/\/status\/(\d+)/);
+  if (!match) return;
+  const replyTweetUrl = window.location.href;
+  
+  postButton.setAttribute('data-misskey-reply-hooked', 'true');
+  postButton.addEventListener('click', () => {
+    browser.storage.local.set({ misskey_last_reply_url: replyTweetUrl });
+  });
 }
 
 let zoomedEmojiContainer: HTMLDivElement | null = null;
@@ -332,6 +369,9 @@ const observer = new MutationObserver(mutations => {
         
         const tweetButton = node.querySelector(buttonSelector);
         if (tweetButton) { foundTweetButtonHandler(tweetButton); }
+
+        const postButton = node.querySelector(postButtonSelector);
+        if (postButton) foundPostButtonHandler(postButton);
         
         const attachmentsImages = document.querySelectorAll(attachmentsImageSelector);
         if (attachmentsImages) { 
