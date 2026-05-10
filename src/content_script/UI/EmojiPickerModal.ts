@@ -51,9 +51,23 @@ const insertTextToTweetTextarea = (text: string) => {
   }
 
   try {
-    document.execCommand('insertText', false, text);
+    const dataTransfer = new DataTransfer();
+    dataTransfer.setData('text/plain', text);
+    const event = new ClipboardEvent('paste', {
+      clipboardData: dataTransfer,
+      bubbles: true,
+      cancelable: true,
+    });
+    
+    if (!textarea.dispatchEvent(event)) {
+      return;
+    }
+    
+    if (!document.execCommand('insertText', false, text)) {
+      throw new Error('execCommand failed');
+    }
   } catch(e) {
-    console.warn("execCommand failed, trying fallback", e);
+    console.warn("Text insertion failed, trying fallback", e);
     const textNode = document.createTextNode(text);
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
